@@ -51,7 +51,6 @@ runs:
       shell: bash
       name: "Echo Google Cloud Platform Credentials To Json File"
       run: |-
-        ls -lsah .github
         echo $GOOGLE_APPLICATION_CREDENTIALS > rails-cloud-run-action/credentials.json
     - uses: hashicorp/setup-terraform@v2
       with:
