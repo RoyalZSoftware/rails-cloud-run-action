@@ -1,6 +1,6 @@
 # Rails Cloud Run Action
 
-```
+```yaml
 steps:
   deploy_production:
     needs: [build]
