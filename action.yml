@@ -1,0 +1,73 @@
+name: Deploy App to Cloud Run
+description: Creates a cloud sql, cloud storage, cloud secret manager and a cloud run revision. Optionally even a load balancer and a dns entry
+
+inputs:
+  domain:
+    required: false
+    description: "Only required if requires_load_balancer==true. Example: royalzsoftware.de"
+  environment_name:
+    required: true
+    description: "Environment name"
+  environment_tag:
+    required: true
+    description: "Tag of environment. Might be gh hash or tag name"
+  project_id:
+    required: true
+    description: "The Google Cloud Project id"
+  project_name:
+    required: true
+    description: "Will be used as prefix for all the resources"
+  region:
+    required: false
+    description: "GCP region: europe-west3, us-central1, ..."
+    default: europe-west3
+  requires_load_balancer:
+    required: false
+    description: "Create DNS Record, Load Balancer and Public Ip adress?"
+    default: 'false'
+  google_application_credentials:
+    required: true
+    description: "The Gcloud service account json key (raw json) NOT filepath"
+  rails_master_key:
+    required: true
+    description: "Content of config/master.key"
+
+outputs:
+  deployment-url:
+    description: "Deployment Url of Cloud Run"
+    value: ${{steps.create_resources.outputs.deployment_url}}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v3
+    - id: echo_google_credentials_to_file
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{inputs.google_application_credentials}}
+      shell: bash
+      name: "Echo Google Cloud Platform Credentials To Json File"
+      run: |-
+        echo $GOOGLE_APPLICATION_CREDENTIALS > .github/actions/deploy-cloud-run/.terraform/credentials.json
+    - uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_wrapper: false
+    - id: create_resources
+      shell: bash
+      name: "Create Terraform Resources"
+      working-directory: .github/actions/deploy-cloud-run/.terraform/app-resources
+      env:
+        TF_VAR_rails_env: ${{inputs.rails_env}}
+        TF_VAR_env_tag: ${{inputs.environment_name}}
+        TF_VAR_env_tag_version: ${{inputs.environment_tag}}
+        TF_VAR_master_key_secret: ${{inputs.rails_master_key}}
+        TF_VAR_requires_load_balancer: ${{inputs.requires_load_balancer}}
+        TF_VAR_domain: ${{inputs.domain}}
+        TF_VAR_project_name: ${{inputs.project_name}}
+        TF_VAR_project_id: ${{inputs.project_id}}
+        GOOGLE_CREDENTIALS: ../credentials.json
+      run: |-
+        terraform init -backend-config="bucket=$PROJECT_NAME-cicd" -backend-config="prefix=$TF_VAR_env_tag"
+        terraform plan -out terraform.plan
+        terraform apply terraform.plan
+        
+        echo "::set-output name=deployment_url::$(terraform output -raw cloud_run_url)"
