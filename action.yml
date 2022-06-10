@@ -52,17 +52,14 @@ runs:
       shell: bash
       name: "Echo Google Cloud Platform Credentials To Json File"
       run: |-
-        echo $GOOGLE_APPLICATION_CREDENTIALS > cloud-action/credentials.json
-        ls -lsah
-        ls -lsah cloud-action/
-        ls -lsah cloud-action/.terraform
+        echo $GOOGLE_APPLICATION_CREDENTIALS > cloud-action/.terraform/credentials.json
     - uses: hashicorp/setup-terraform@v2
       with:
         terraform_wrapper: false
     - id: create_resources
       shell: bash
       name: "Create Terraform Resources"
-      working-directory: cloud-action/.terraform/
+      working-directory: cloud-action/.terraform/app-resources
       env:
         TF_VAR_rails_env: ${{inputs.rails_env}}
         TF_VAR_env_tag: ${{inputs.environment_name}}
