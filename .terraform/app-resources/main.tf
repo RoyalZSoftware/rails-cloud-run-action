@@ -19,6 +19,8 @@ provider "google" {
 resource "google_sql_database" "database" {
   name     = "${var.project_name}_app"
   instance = google_sql_database_instance.instance.name
+  
+  deletion_protection = "false"
 }
 
 resource "google_sql_database_instance" "instance" {
