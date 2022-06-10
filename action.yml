@@ -47,7 +47,7 @@ runs:
       shell: bash
       name: "Echo Google Cloud Platform Credentials To Json File"
       run: |-
-        ls -lsah
+        ls -lsah .github
         echo $GOOGLE_APPLICATION_CREDENTIALS > credentials.json
     - uses: hashicorp/setup-terraform@v2
       with:
