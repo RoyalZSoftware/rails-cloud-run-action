@@ -41,6 +41,10 @@ runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v3
+    - uses: actions/checkout@v3
+      with:
+        repository: royalzsoftware/rails-cloud-run-action
+        ref: master
     - id: echo_google_credentials_to_file
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{inputs.google_application_credentials}}
@@ -48,14 +52,14 @@ runs:
       name: "Echo Google Cloud Platform Credentials To Json File"
       run: |-
         ls -lsah .github
-        echo $GOOGLE_APPLICATION_CREDENTIALS > credentials.json
+        echo $GOOGLE_APPLICATION_CREDENTIALS > rails-cloud-run-action/credentials.json
     - uses: hashicorp/setup-terraform@v2
       with:
         terraform_wrapper: false
     - id: create_resources
       shell: bash
       name: "Create Terraform Resources"
-      working-directory: .terraform/
+      working-directory: rails-cloud-run-action/.terraform/
       env:
         TF_VAR_rails_env: ${{inputs.rails_env}}
         TF_VAR_env_tag: ${{inputs.environment_name}}
